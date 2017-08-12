@@ -2,6 +2,9 @@ const electron = require('electron');
 const { app } = electron;
 const { BrowserWindow } = electron;
 const { Menu } = electron;
+
+const {dialog} = electron;
+
 let win;
 
 function createWindow() {
@@ -12,6 +15,7 @@ function createWindow() {
     });
     win.loadURL(`file://${__dirname}/index.html`);
     win.on('closed', () => { win = null; });
+    win.webContents.openDevTools()
     var menu = [{
             label: "ファイル(F)",
             submenu: [

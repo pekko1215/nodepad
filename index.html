@@ -2,58 +2,43 @@
 <html>
 
 <head>
-    <title>無題 - すごいメモ帳</title>
-    <style>
-    * {
-        padding: 0;
+  <meta charset="UTF-8">
+  <title>すごいめもちょう - 無題</title>
+  <style type="text/css" media="screen">
+    body {
+        overflow: hidden;
+    }
+    
+    #editor { 
         margin: 0;
-        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
     }
-
-    html,
-    body,
-    #editor {
-        width: 100%;
-        height: 100%;
-    }
-    </style>
-    <script>
-    require('ace-min-noconflict');
-    require('ace-min-noconflict/mode-javascript');
-    var editor;
-
-    window.addEventListener('DOMContentLoaded', function() {
-        editor = ace.edit("editor");
-        editor.getSession().setMode('ace/mode/javascript');
-        editor.$blockScrolling = Infinity; // ワーニングに対処
-        if (process.platform == 'darwin') { // Ctrl+Pが効かない問題に対処
-            editor.commands.bindKey("Ctrl-P", "golineup");
-        }
-        document.body.addEventListener('dragover', function(e) {
-            e.preventDefault();
-        });
-        document.body.addEventListener('drop', function(e) {
-            e.preventDefault();
-            if (e.dataTransfer.files[0]) {
-                var file = e.dataTransfer.files[0].path;
-                if (/\.js$/.test(file)) {
-                    openFile(file);
-                }
-            }
-        });
-    });
-
-
-    function openFile(file) {
-        require('fs').readFile(file, 'utf8', function(err, data) {
-            editor.setValue(data, -1);
-        });
-    }
-    </script>
+  </style>
 </head>
-
 <body>
-    <div id="editor"></div>
-</body>
 
+<pre id="editor"></pre>
+
+<!-- load ace -->
+<script src="./lib/ace/ace.js"></script>
+<!-- load ace language tools -->
+<script src="./lib/ace/ext-language_tools.js"></script>
+<script>
+    // trigger extension
+    ace.require("ace/ext/language_tools");
+    var editor = ace.edit("editor");
+    editor.session.setMode("ace/mode/html");
+    editor.setTheme("ace/theme/tomorrow");
+    // enable autocompletion and snippets
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: false
+    });
+</script>
+</body>
 </html>
