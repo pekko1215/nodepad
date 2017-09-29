@@ -6,7 +6,7 @@
 /*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/09/29 10:43:49 by anonymous         #+#    #+#             */
-/*   Updated: 2017/09/29 18:06:57 by anonymous        ###   ########.fr       */
+/*   Updated: 2017/09/29 19:07:16 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 // trigger extension
@@ -16,6 +16,8 @@ const fs = require('fs');
 const jschardet = require('jschardet');
 
 const suggest = new Suggest.LocalMulti("console", "suggest", [], {})
+
+const lang = require('lang-detector')
 
 var Commands = {
     echo: function(...arg) {
@@ -67,6 +69,7 @@ var Commands = {
                         }
                         CurrentEditer.setValue(data);
                         CurrentEditer.path = dict + files[0];
+                        sendConsole("Open "+CurrentEditer.path)
                         setTitle()
                     }).catch((e) => {
                         if (e == 0) { return }
@@ -290,6 +293,8 @@ function openFile(fileNames) {
                 return;
             }
             var charCode = jschardet.detect(data);
+            var l =lang(data.toString(charCode.encoding))
+            CurrentEditer.session.setMode("ace/mode/"+l.toLocaleLowerCase())
             resolve(data.toString(charCode.encoding));
         });
     })

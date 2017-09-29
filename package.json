@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"electron ."
+    "start": "electron ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ace-min-noconflict": "^1.1.9"
+    "ace-min-noconflict": "^1.1.9",
+    "lang-detector": "^1.0.6",
+    "language-classifier": "0.0.1"
   }
 }
