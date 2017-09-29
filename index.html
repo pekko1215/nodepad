@@ -2,43 +2,98 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <title>すごいめもちょう - 無題</title>
-  <style type="text/css" media="screen">
+    <meta charset="UTF-8">
+    <title>すごいめもちょう - 無題</title>
+    <style type="text/css" media="screen">
     body {
         overflow: hidden;
     }
-    
-    #editor { 
+
+    .editor {
         margin: 0;
-        position: absolute;
         top: 0;
         bottom: 0;
         left: 0;
         right: 0;
     }
-  </style>
+
+    #suggest {
+        position: absolute;
+        background-color: #FFFFFF;
+        border: 1px solid #CCCCFF;
+        font-size: 90%;
+        width: 200px;
+    }
+
+    #suggest div {
+        display: block;
+        width: 200px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    #suggest div.select {
+        /* キー上下で選択した場合のスタイル */
+        color: #FFFFFF;
+        background-color: #3366FF;
+    }
+
+    #suggest div.over {
+        /* マウスオーバ時のスタイル */
+        background-color: #99CCFF;
+    }
+
+    .editor_command{
+        margin: 0;
+        top: 0;
+        bottom: 25%;
+        left: 0;
+        right: 0;
+    }
+
+    #Command , #stdout{
+        margin: 0;
+        top: 75%;
+        bottom: 0%;
+        left: 0;
+        right: 0;
+        height:25%;
+        position: absolute;
+        background-color:#222222;
+        color:#00ff00;
+        font-size: 12px;
+    }
+
+    #stdout{
+        top:15px;
+    }
+
+    #console{
+        width:100%;
+        outline: 0;
+        border:none;
+        background-color: black;
+        color:lightgreen;
+    }
+
+    </style>
 </head>
+
 <body>
+    <div id="Editor">
+        <pre class="editor" id="editor0" style="position: absolute;"></pre>
+    </div>
+    <div id="Command" style="display: none">
+        <input type="text" id="console" autocomplete="off">
+        <div id="suggest" style="display: none;"></div>
+        <div id="stdout"></div>
+    </div>
 
-<pre id="editor"></pre>
-
-<!-- load ace -->
-<script src="./lib/ace/ace.js"></script>
-<!-- load ace language tools -->
-<script src="./lib/ace/ext-language_tools.js"></script>
-<script>
-    // trigger extension
-    ace.require("ace/ext/language_tools");
-    var editor = ace.edit("editor");
-    editor.session.setMode("ace/mode/c_cpp");
-    editor.setTheme("ace/theme/tomorrow");
-    // enable autocompletion and snippets
-    editor.setOptions({
-        enableBasicAutocompletion: true,
-        enableSnippets: true,
-        enableLiveAutocompletion: false
-    });
-</script>
+    <!-- load ace -->
+    <script src="./lib/ace/ace.js"></script>
+    <!-- load ace language tools -->
+    <script src="./lib/ace/ext-language_tools.js"></script>
+    <script src="./suggest.js"></script>
+    <script src="./client.js"></script>
 </body>
 </html>
