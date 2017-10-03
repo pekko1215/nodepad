@@ -6,7 +6,7 @@
 /*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/09/29 10:43:49 by anonymous         #+#    #+#             */
-/*   Updated: 2017/10/03 10:12:35 by anonymous        ###   ########.fr       */
+/*   Updated: 2017/10/03 17:37:53 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 // trigger extension
@@ -202,26 +202,32 @@ remote.getCurrentWindow().on('close',()=>{
 });
 remote.getCurrentWindow().toggleDevTools();
 
+var prom = new Promise((r)=>{r()});
+
 oldTabs && oldTabs.forEach((tabs) => {
-    if (tabs.isFile) {
-        var path = tabs.path;
-        openFile(path)
-            .then((data) => {
-                if (CurrentEditer.session.$undoManager.dirtyCounter !== 0 || CurrentEditer.path !== "") {
-                    CurrentEditer = CreateNewEditter();
-                }
-                CurrentEditer.setValue(data);
-                CurrentEditer.path = path;
-                setTitle()
-            }).catch((e) => {
-                if (e == 0) { return }
-                console.log(e)
-                alert('ファイルが開けません');
-            });
-    }else{
-        CurrentEditer = CreateNewEditter();
-        CurrentEditer.setValue(tabs.data);
-    }
+    prom = prom.then(new Promise((resolve,reject)=>{
+        if (tabs.isFile) {
+            var path = tabs.path;
+            openFile(path)
+                .then((data) => {
+                    if (CurrentEditer.session.$undoManager.dirtyCounter !== 0 || CurrentEditer.path !== "") {
+                        CurrentEditer = CreateNewEditter();
+                    }
+                    CurrentEditer.setValue(data);
+                    CurrentEditer.path = path;
+                    setTitle()
+                    resolve();
+                }).catch((e) => {
+                    if (e == 0) { return }
+                    console.log(e)
+                    alert('ファイルが開けません');
+                });
+        }else{
+            CurrentEditer = CreateNewEditter();
+            CurrentEditer.setValue(tabs.data);
+            resolve()
+        }
+    }))
 });
 
 function saveTabs() {
@@ -325,7 +331,6 @@ function CreateNewEditter() {
 
     var node = document.createElement('pre');
     node.id = "editor" + VirtualTab.length
-    node.class = "editor"
     node.style.position = "absolute"
     node.classList.add('editor')
     editers.appendChild(node)
@@ -422,9 +427,12 @@ function setCurrentTab(editer) {
         e.container.style.display = "none"
     })
     editer.container.style.display = "";
-    CurrentEditer.blur();
     CurrentEditer = editer;
     CurrentEditer.focus();
+    setTimeout(()=>{
+        window.resizeBy(1,-1);
+        window.resizeBy(-1,1);
+    },20);
     setTitle();
 }
 
