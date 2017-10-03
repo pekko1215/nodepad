@@ -17,7 +17,7 @@ function createWindow() {
     win.once('ready-to-show', () => { win.show(); });
     win.loadURL(`file://${__dirname}/index.html`);
     win.on('closed', () => { win = null; });
-    win.webContents.openDevTools()
+    //win.webContents.openDevTools()
 
 }
 app.on('ready', createWindow);

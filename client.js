@@ -6,7 +6,7 @@
 /*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/09/29 10:43:49 by anonymous         #+#    #+#             */
-/*   Updated: 2017/09/29 19:07:16 by anonymous        ###   ########.fr       */
+/*   Updated: 2017/10/03 10:12:35 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 // trigger extension
@@ -18,6 +18,8 @@ const jschardet = require('jschardet');
 const suggest = new Suggest.LocalMulti("console", "suggest", [], {})
 
 const lang = require('lang-detector')
+
+var oldTabs = JSON.parse(localStorage.getItem('tabs'));
 
 var Commands = {
     echo: function(...arg) {
@@ -62,14 +64,14 @@ var Commands = {
             if (files.length == 1) {
                 openFile(dict + files[0])
                     .then((data) => {
+                        toggleCommandConsole();
                         if (CurrentEditer.session.$undoManager.dirtyCounter !== 0 || CurrentEditer.path !== "") {
-                            toggleCommandConsole();
                             CurrentEditer = CreateNewEditter();
-                            toggleCommandConsole();
+                            // toggleCommandConsole();
                         }
                         CurrentEditer.setValue(data);
                         CurrentEditer.path = dict + files[0];
-                        sendConsole("Open "+CurrentEditer.path)
+                        sendConsole("Open " + CurrentEditer.path)
                         setTitle()
                     }).catch((e) => {
                         if (e == 0) { return }
@@ -85,6 +87,12 @@ var Commands = {
             str += "が見つかりました。"
             sendConsole(str)
         })
+    },
+    "debug": function() {
+        remote.getCurrentWindow().toggleDevTools();
+    },
+    "save": function() {
+        saveFile(CurrentEditer.path)
     }
 }
 
@@ -118,6 +126,7 @@ var menu = [{
                 label: "開く",
                 click() {
                     dialog.showOpenDialog(null, {}, function(path) {
+                        if (path.length == 0) { return }
                         openFile(path)
                             .then((data) => {
                                 if (CurrentEditer.session.$undoManager.dirtyCounter !== 0 || CurrentEditer.path !== "") {
@@ -155,8 +164,19 @@ var menu = [{
     },
     {
         label: "編集(E)",
-        submenu: [
-            { label: "元に戻す" }
+        submenu: [{
+                label: "元に戻す",
+                accelerator: "Ctrl+Z",
+                click() {
+                    console.log("test")
+                }
+            },
+            { type: 'separator' },
+            { label: "コピー" },
+            { label: "貼り付け" },
+            { label: "削除" },
+            { type: 'separator' },
+            { label: "検索" }
         ]
     }, {
         label: "書式(O)",
@@ -176,6 +196,60 @@ var menu = [{
     }
 ]
 Menu.setApplicationMenu(Menu.buildFromTemplate(menu))
+
+remote.getCurrentWindow().on('close',()=>{
+    saveTabs();
+});
+remote.getCurrentWindow().toggleDevTools();
+
+oldTabs && oldTabs.forEach((tabs) => {
+    if (tabs.isFile) {
+        var path = tabs.path;
+        openFile(path)
+            .then((data) => {
+                if (CurrentEditer.session.$undoManager.dirtyCounter !== 0 || CurrentEditer.path !== "") {
+                    CurrentEditer = CreateNewEditter();
+                }
+                CurrentEditer.setValue(data);
+                CurrentEditer.path = path;
+                setTitle()
+            }).catch((e) => {
+                if (e == 0) { return }
+                console.log(e)
+                alert('ファイルが開けません');
+            });
+    }else{
+        CurrentEditer = CreateNewEditter();
+        CurrentEditer.setValue(tabs.data);
+    }
+});
+
+function saveTabs() {
+    var arr = [];
+    VirtualTab.forEach(tab=>{
+        if(!("path" in tab) || tab.path==""){
+            if(tab.getValue()===""){return;}
+            arr.push({
+                isFile:false,
+                data:tab.getValue()
+            })
+        }else{
+            if(tab.session.$undoManager.dirtyCounter>1){
+                if(confirm(`${pathToName(tab.path)} を保存しますか?`)){
+                    saveFile(tab.path);
+                }else{
+                    return;
+                }
+            }
+            arr.push({
+                isFile:true,
+                path:tab.path
+            })
+        }
+    })
+    localStorage.setItem('tabs',JSON.stringify(arr));
+}
+
 
 function registShortcut(editer) {
     editer.commands.addCommand({
@@ -201,8 +275,7 @@ function registShortcut(editer) {
             setCurrentTab(VirtualTab[(editer.index - 1 + VirtualTab.length) % VirtualTab.length]);
         }
     })
-
-    editor.commands.addCommand({
+    editer.commands.addCommand({
         name: "save",
         bindKey: { win: "Ctrl-S" },
         exec() {
@@ -233,11 +306,11 @@ function saveFile(path) {
         dialog.showSaveDialog(null, {
             title: '保存'
         }, (files) => {
-            if (!files) {}
+            if (!files) { return; }
             saveFile(files)
         })
     } else {
-        fs.writeFile(path, CurrentEditer.getValue(),(err)=>{console.log(err)});
+        fs.writeFile(path, CurrentEditer.getValue(), (err) => { console.log(err) });
     }
 }
 
@@ -272,6 +345,7 @@ function CreateNewEditter() {
     editor.path = "";
     editor.index = VirtualTab.length;
     registShortcut(editor)
+    editor.focus();
     VirtualTab.push(editor);
 
     return editor;
@@ -293,13 +367,18 @@ function openFile(fileNames) {
                 return;
             }
             var charCode = jschardet.detect(data);
-            var l =lang(data.toString(charCode.encoding))
-            CurrentEditer.session.setMode("ace/mode/"+l.toLocaleLowerCase())
+            var l = lang(data.toString(charCode.encoding)).toLocaleLowerCase()
+            switch (l) {
+                case 'c':
+                case 'cpp':
+                    l = "c_cpp";
+            }
+            CurrentEditer.session.setMode("ace/mode/" + l)
             resolve(data.toString(charCode.encoding));
         });
     })
 }
-
+//177 49
 function toggleCommandConsole() {
     var CommandElem = document.getElementById("Command");
 

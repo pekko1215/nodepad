@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "ace-min-noconflict": "^1.1.9",
+    "jschardet": "^1.5.1",
     "lang-detector": "^1.0.6",
     "language-classifier": "0.0.1"
   }
